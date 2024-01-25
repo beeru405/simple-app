@@ -2,27 +2,27 @@ pipeline {
     agent any
 
     stages {
-        stage('Checkout') {
-            steps {
-                git 'https://github.com/beeru405/simple-calculator-app.git'
-            }
-        }
-
-        stage('Install Dependencies') {
+        stage('Build') {
             steps {
                 script {
-                    sh 'pip install -r requirements.txt'
+                    sh 'mvn clean package'
                 }
             }
         }
 
-        stage('Run Tests') {
+        stage('Test') {
             steps {
                 script {
-                    sh 'python -m unittest discover tests'
+                    // Run tests using Maven
+                    def testResult = sh(script: 'mvn test', returnStatus: true)
+                    
+                    // Check the test results and mark the build as failed if any test failed
+                    if (testResult != 0) {
+                        currentBuild.result = 'FAILURE'
+                        error('Tests failed. Marking the build as FAILURE.')
+                    }
                 }
             }
         }
     }
-
 }
